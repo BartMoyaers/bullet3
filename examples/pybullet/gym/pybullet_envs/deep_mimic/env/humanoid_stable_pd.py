@@ -808,3 +808,6 @@ class HumanoidStablePD(object):
   def getSimModelBasePosition(self):
     return  self._pybullet_client\
                 .getBasePositionAndOrientation(self._sim_model)
+                
+  def getLinkPosition(self, link_id):
+    return self._pybullet_client.getLinkState(self._sim_model, link_id)[0]

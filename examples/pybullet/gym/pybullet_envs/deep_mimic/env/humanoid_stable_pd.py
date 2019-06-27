@@ -255,9 +255,9 @@ class HumanoidStablePD(object):
     keyFrameDuration = self._mocap_data.KeyFrameDuraction()
     cycleTime = self.getCycleTime()
     #print("self._motion_data.NumFrames()=",self._mocap_data.NumFrames())
-    self._cycleCount = self.calcCycleCount(t, cycleTime)
+    self.cycleCount = self.calcCycleCount(t, cycleTime)
     #print("cycles=",cycles)
-    frameTime = t - self._cycleCount * cycleTime
+    frameTime = t - self.cycleCount * cycleTime
     if (frameTime < 0):
       frameTime += cycleTime
 
@@ -295,9 +295,9 @@ class HumanoidStablePD(object):
     self.computeCycleOffset()
     oldPos = self._poseInterpolator._basePos
     self._poseInterpolator._basePos = [
-        oldPos[0] + self._cycleCount * self._cycleOffset[0],
-        oldPos[1] + self._cycleCount * self._cycleOffset[1],
-        oldPos[2] + self._cycleCount * self._cycleOffset[2]
+        oldPos[0] + self.cycleCount * self._cycleOffset[0],
+        oldPos[1] + self.cycleCount * self._cycleOffset[1],
+        oldPos[2] + self.cycleCount * self._cycleOffset[2]
     ]
     pose = self._poseInterpolator.GetPose()
 

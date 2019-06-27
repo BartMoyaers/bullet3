@@ -27,8 +27,9 @@ class Goal:
     def __init__(self, goal_type: GoalType):
         self.goal_type = goal_type
         self.generateGoalData()
+        self.is_hit_prev = False
 
-    def generateGoalData(self):
+    def generateGoalData(self, modelPos=[0,0]):
         if self.goal_type == GoalType.NoGoal:
             self.goal_data = []
 
@@ -39,7 +40,7 @@ class Goal:
             rot = randomVal(-1, 1) # radians
             
             self.is_hit = False
-            self.is_hit_prev = False
+            
             # The max distance from the target counting as a hit
             self.hit_range = 0.2
 
@@ -50,6 +51,7 @@ class Goal:
 
             # Y axis up, z axis in different direction
             self.goal_data = [-x, z, y]
+            self.world_pos = [-x + modelPos[0], z, y + modelPos[1]]
 
         elif self.goal_type == GoalType.TargetHeading:
             # Direction: 2D unit vector

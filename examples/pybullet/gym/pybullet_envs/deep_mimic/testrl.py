@@ -23,7 +23,7 @@ step = False
 def update_world(world, time_elapsed):
   timeStep = update_timestep
   world.update(timeStep)
-  reward = world.env.calc_reward(agent_id=0)
+  # reward = world.env.calc_reward(agent_id=0)
   #print("reward=",reward)
   end_episode = world.env.is_episode_end()
   if (end_episode):

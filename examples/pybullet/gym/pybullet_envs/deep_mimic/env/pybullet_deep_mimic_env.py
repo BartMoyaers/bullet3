@@ -409,7 +409,7 @@ class PyBulletDeepMimicEnv(Env):
     if self.goal.is_hit:
       return 1
     else:
-      goalPos = self.goal.goal_data
+      goalPos = self.goal.world_pos
       distanceSquared = sum([(x - y)**2 for (x, y) in zip(goalPos, linkPos)])
       return math.exp(-4*distanceSquared)
 

@@ -1,6 +1,8 @@
 from enum import Enum
 import random
 import math
+import pybullet as pb
+import numpy
 
 def randomVal(lowerBound, upperbound):
     difference = upperbound - lowerBound
@@ -26,10 +28,12 @@ class GoalType(Enum):
 class Goal:
     def __init__(self, goal_type: GoalType):
         self.goal_type = goal_type
-        self.generateGoalData()
+        self.follow_rot = True
         self.is_hit_prev = False
 
-    def generateGoalData(self, modelPos=[0,0]):
+        self.generateGoalData()
+
+    def generateGoalData(self, modelPos=[0,0,0], modelOrient=[0,0,0,1]):
         if self.goal_type == GoalType.NoGoal:
             self.goal_data = []
 
@@ -51,7 +55,24 @@ class Goal:
 
             # Y axis up, z axis in different direction
             self.goal_data = [-x, z, y]
-            self.world_pos = [-x + modelPos[0], z, y + modelPos[1]]
+
+            if self.follow_rot:
+                # Take rotation of human model into account
+                eulerAngles = pb.getEulerFromQuaternion(modelOrient)
+                # Only Y angle matters
+                eulerAngles = [0, eulerAngles[1], 0]
+                yQuat = pb.getQuaternionFromEuler(eulerAngles)
+                rotMatList = pb.getMatrixFromQuaternion(yQuat)
+                rotMat = numpy.array([rotMatList[0:3], rotMatList[3:6], rotMatList[6:9]])
+                vec = numpy.array(self.goal_data)
+                rotatedVec = numpy.dot(rotMat, vec)
+                self.world_pos = rotatedVec.tolist()
+
+                self.world_pos =    [   self.world_pos[0] + modelPos[0],
+                                        self.world_pos[1],
+                                        self.world_pos[2] + modelPos[2]]
+            else:
+                self.world_pos = [-x + modelPos[0], z, y + modelPos[2]]
 
         elif self.goal_type == GoalType.TargetHeading:
             # Direction: 2D unit vector

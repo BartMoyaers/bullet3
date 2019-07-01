@@ -101,8 +101,8 @@ class PyBulletDeepMimicEnv(Env):
     #self._pybullet_client.stepSimulation()
     self._humanoid.resetPose()
     # generate new goal
-    humanPos = self._humanoid.getLinkPosition(0)
-    self.goal.generateGoalData([humanPos[0], humanPos[2]])
+    humanPos, humanOrient = self._humanoid.getLinkPositionAndOrientation(0)
+    self.goal.generateGoalData(humanPos, humanOrient)
     self.needs_update_time = self.t - 1  #force update
 
   def get_num_agents(self):
@@ -257,7 +257,7 @@ class PyBulletDeepMimicEnv(Env):
     goal_weight = 0.3
 
     if self.goal.goal_type == GoalType.Strike:
-      linkPos = self._humanoid.getLinkPosition(HumanoidLinks.rightAnkle)
+      linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)
       reward = mimic_weight * reward + goal_weight * self.calcStrikeGoalReward(linkPos)
 
     return reward
@@ -289,7 +289,7 @@ class PyBulletDeepMimicEnv(Env):
     #print("pybullet_deep_mimic_env:update timeStep=",timeStep," t=",self.t)
     self._pybullet_client.setTimeStep(timeStep)
     self._humanoid._timeStep = timeStep
-    self.updateGoal(self._humanoid.getLinkPosition(HumanoidLinks.rightAnkle))
+    self.updateGoal(self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)[0])
     if self.target_id is not None: # TODO: check goal type
       self.updateDrawStrikeGoal()
 
@@ -417,8 +417,8 @@ class PyBulletDeepMimicEnv(Env):
     if self.goal.goal_type == GoalType.Strike:
       if self.prevCycleCount != self._humanoid.cycleCount:
         # generate new goal
-        humanPos = self._humanoid.getLinkPosition(0)
-        self.goal.generateGoalData([humanPos[0], humanPos[2]])
+        humanPos, humanOrient = self._humanoid.getLinkPositionAndOrientation(0)
+        self.goal.generateGoalData(humanPos, humanOrient)
         self.prevCycleCount = self._humanoid.cycleCount
 
       goalPos = self.goal.world_pos

@@ -28,7 +28,7 @@ class GoalType(Enum):
 class Goal:
     def __init__(self, goal_type: GoalType):
         self.goal_type = goal_type
-        self.follow_rot = True
+        self.follow_rot = False
         self.is_hit_prev = False
 
         self.generateGoalData()

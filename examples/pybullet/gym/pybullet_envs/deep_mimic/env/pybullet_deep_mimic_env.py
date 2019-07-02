@@ -165,8 +165,8 @@ class PyBulletDeepMimicEnv(Env):
     return ctrl_size - root_size
 
   def build_goal_norm_groups(self, agent_id):
-    # Perform no normalization on goal data
-    return np.array([-1] * len(self.goal.getTFData()))
+    # Perform normalization on goal data
+    return np.array([0] * len(self.goal.getTFData()))
 
   def build_goal_offset(self, agent_id):
     # no offset

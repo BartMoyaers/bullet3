@@ -556,6 +556,7 @@ class RLAgent(ABC):
           self.logger.log_tabular("Test_Return", self.avg_test_return)
           self.logger.log_tabular("State_Mean", s_mean)
           self.logger.log_tabular("State_Std", s_std)
+          self.logger.log_tabular("Goal_Type", self.world.env.goal.goal_type)
           self.logger.log_tabular("Goal_Mean", g_mean)
           self.logger.log_tabular("Goal_Std", g_std)
           self._log_exp_params()

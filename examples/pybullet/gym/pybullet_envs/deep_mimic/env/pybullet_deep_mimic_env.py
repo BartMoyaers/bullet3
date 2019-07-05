@@ -6,7 +6,7 @@ from pybullet_utils import bullet_client
 import time
 from pybullet_envs.deep_mimic.env import motion_capture_data
 from pybullet_envs.deep_mimic.env import humanoid_stable_pd
-from pybullet_envs.deep_mimic.env.goals import GoalType, Goal
+from pybullet_envs.deep_mimic.env.goals import GoalType, Goal, createGoal
 from pybullet_envs.deep_mimic.env.humanoid_link_ids import HumanoidLinks
 import pybullet_data
 import pybullet as p1
@@ -403,7 +403,7 @@ class PyBulletDeepMimicEnv(Env):
   
   def getGoal(self):
     goal_type_str = self._arg_parser.parse_string("goal_type")
-    return Goal(GoalType.from_str(goal_type_str))
+    return createGoal(GoalType.from_str(goal_type_str))
 
   def calcStrikeGoalReward(self, linkPos):
     if self.goal.is_hit:
@@ -430,7 +430,7 @@ class PyBulletDeepMimicEnv(Env):
   def drawStrikeGoal(self):
     vis_id = self._pybullet_client.createVisualShape(
                 shapeType=self._pybullet_client.GEOM_SPHERE,
-                radius=0.2,
+                radius=self.goal.hit_range,
                 rgbaColor=[1,0,0,0.5])
 
     obj_id = self._pybullet_client.createMultiBody(

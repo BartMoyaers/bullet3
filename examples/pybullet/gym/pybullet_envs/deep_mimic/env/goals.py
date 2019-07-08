@@ -48,21 +48,21 @@ class NoGoal(Goal):
 
     def getTFData(self):
         return self.goal_data
-            
+
 class StrikeGoal(Goal):
     def __init__(self):
-        self.follow_rot = False
+        self.follow_rot = True
         self.is_hit_prev = False
         super().__init__(GoalType.Strike)
-    
+
     def generateGoalData(self, modelPos=[0,0,0], modelOrient=[0,0,0,1]):
         # distance, height, rot
         distance = randomVal(0.6, 0.8)
         height = randomVal(0.8, 1.25)
         rot = randomVal(-1, 1) # radians
-        
+
         self.is_hit = False
-        
+
         # The max distance from the target counting as a hit
         self.hit_range = 0.2
 
@@ -76,16 +76,20 @@ class StrikeGoal(Goal):
 
         if self.follow_rot:
             # Take rotation of human model into account
-            eulerAngles = pb.getEulerFromQuaternion(modelOrient)
-            # Only Y angle matters
-            eulerAngles = [0, eulerAngles[1], 0]
-            yQuat = pb.getQuaternionFromEuler(eulerAngles)
-            rotMatList = pb.getMatrixFromQuaternion(yQuat)
+            rotMatList = pb.getMatrixFromQuaternion(modelOrient)
             rotMat = numpy.array([rotMatList[0:3], rotMatList[3:6], rotMatList[6:9]])
             vec = numpy.array(self.goal_data)
             rotatedVec = numpy.dot(rotMat, vec)
             self.world_pos = rotatedVec.tolist()
 
+            # Correct distance and height after rotation
+            curr_distance = (self.world_pos[0] ** 2 + self.world_pos[2] ** 2) ** 0.5
+            factor = distance / curr_distance
+            self.world_pos[0] *= factor
+            self.world_pos[1] = height
+            self.world_pos[2] *= factor
+
+            # Add translation of agent in world
             self.world_pos =    [   self.world_pos[0] + modelPos[0],
                                     self.world_pos[1],
                                     self.world_pos[2] + modelPos[2]]
@@ -110,10 +114,10 @@ class TargetHeadingGoal(Goal):
         y = math.sin(random_rot)
         velocity = randomVal(0, 0.5)
         self.goal_data = [x, y, velocity]
-    
+
     def getTFData(self):
         return self.goal_data
-    
+
 def createGoal(goal_type: GoalType) -> Goal:
     if goal_type == GoalType.NoGoal:
         return NoGoal()

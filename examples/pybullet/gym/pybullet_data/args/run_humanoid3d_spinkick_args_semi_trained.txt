@@ -23,4 +23,5 @@
 
 #--output_path output
 #--int_output_path output/intermediate
---model_files output/spinkick_partial_run/agent0_model.ckpt
+--model_files output/spinkick_partial_run/spinkick_no_rot.ckpt
+#--model_files output/spinkick_partial_run/agent0_model.ckpt

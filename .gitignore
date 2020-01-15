@@ -23,3 +23,13 @@ pip-selfcheck.json
 # Virtualenv
 .venv/*
 .gitignore
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestFile.cmake
+
+# Visual Studio build files
+*.vcxproj
+*.vcxproj.filters
+*.sln

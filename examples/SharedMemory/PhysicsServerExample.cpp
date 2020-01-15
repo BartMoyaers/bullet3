@@ -127,6 +127,7 @@ enum MultiThreadedGUIHelperCommunicationEnums
 	eGUIHelperChangeTexture,
 	eGUIHelperRemoveTexture,
 	eGUIHelperSetVisualizerFlagCheckRenderedFrame,
+	eGUIHelperUpdateShape,
 };
 
 #include <stdio.h>
@@ -545,7 +546,7 @@ MultithreadedDebugDrawer : public btIDebugDraw
 	btHashMap<ColorWidth, int> m_hashedLines;
 
 public:
-	void drawDebugDrawerLines()
+	virtual void drawDebugDrawerLines()
 	{
 		if (m_hashedLines.size())
 		{
@@ -627,7 +628,7 @@ public:
 		return m_debugMode;
 	}
 
-	virtual void clearLines()
+	virtual void clearLines() override
 	{
 		m_hashedLines.clear();
 		m_sortedIndices.clear();
@@ -649,13 +650,26 @@ class MultiThreadedOpenGLGuiHelper : public GUIHelperInterface
 
 public:
 	MultithreadedDebugDrawer* m_debugDraw;
-	void drawDebugDrawerLines()
+	virtual void drawDebugDrawerLines()
 	{
 		if (m_debugDraw)
 		{
+			m_csGUI->lock();
+			//draw stuff and flush?
 			m_debugDraw->drawDebugDrawerLines();
+			m_csGUI->unlock();
 		}
 	}
+        virtual void clearLines()
+        {
+			m_csGUI->lock();
+			if (m_debugDraw)
+			{
+				m_debugDraw->clearLines();
+			}
+			m_csGUI->unlock();
+		}
+        
 	GUIHelperInterface* m_childGuiHelper;
 
 	btHashMap<btHashPtr, int> m_cachedTextureIds;
@@ -846,10 +860,8 @@ public:
 			delete m_debugDraw;
 			m_debugDraw = 0;
 		}
-
-		m_debugDraw = new MultithreadedDebugDrawer(this);
-
-		rbWorld->setDebugDrawer(m_debugDraw);
+                m_debugDraw = new MultithreadedDebugDrawer(this);
+                rbWorld->setDebugDrawer(m_debugDraw);
 
 		//m_childGuiHelper->createPhysicsDebugDrawer(rbWorld);
 	}
@@ -865,6 +877,18 @@ public:
 		workerThreadWait();
 	}
 
+	int m_updateShapeIndex;
+	float* m_updateShapeVertices;
+
+	virtual void updateShape(int shapeIndex, float* vertices)
+	{
+		m_updateShapeIndex = shapeIndex;
+		m_updateShapeVertices = vertices;
+		
+		m_cs->lock();
+		m_cs->setSharedParam(1, eGUIHelperUpdateShape);
+		workerThreadWait();
+	}
 	virtual int registerTexture(const unsigned char* texels, int width, int height)
 	{
 		int* cachedTexture = m_cachedTextureIds[texels];
@@ -1916,6 +1940,15 @@ void PhysicsServerExample::updateGraphics()
 			m_multiThreadedHelper->mainThreadRelease();
 			break;
 		}
+
+		case eGUIHelperUpdateShape:
+		{
+			B3_PROFILE("eGUIHelperUpdateShape");
+			m_multiThreadedHelper->m_childGuiHelper->updateShape(m_multiThreadedHelper->m_updateShapeIndex, m_multiThreadedHelper->m_updateShapeVertices);
+			m_multiThreadedHelper->mainThreadRelease();
+			break;
+		}
+
 		case eGUIHelperRegisterGraphicsShape:
 		{
 			B3_PROFILE("eGUIHelperRegisterGraphicsShape");
@@ -2038,6 +2071,7 @@ void PhysicsServerExample::updateGraphics()
 			}
 			break;
 		}
+
 
 		case eGUIHelperSetVisualizerFlagCheckRenderedFrame:
 		{

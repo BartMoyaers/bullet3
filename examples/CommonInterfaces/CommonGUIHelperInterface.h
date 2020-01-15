@@ -1,6 +1,5 @@
 #ifndef GUI_HELPER_INTERFACE_H
 #define GUI_HELPER_INTERFACE_H
-
 class btRigidBody;
 class btVector3;
 class btCollisionObject;
@@ -44,10 +43,11 @@ struct GUIHelperInterface
 	virtual int registerGraphicsInstance(int shapeIndex, const float* position, const float* quaternion, const float* color, const float* scaling) = 0;
 	virtual void removeAllGraphicsInstances() = 0;
 	virtual void removeGraphicsInstance(int graphicsUid) {}
+	virtual void changeInstanceFlags(int instanceUid, int flags) {}
 	virtual void changeRGBAColor(int instanceUid, const double rgbaColor[4]) {}
 	virtual void changeSpecularColor(int instanceUid, const double specularColor[3]) {}
 	virtual void changeTexture(int textureUniqueId, const unsigned char* rgbTexels, int width, int height) {}
-
+	virtual void updateShape(int shapeIndex, float* vertices) {}
 	virtual int getShapeIndexFromInstance(int instanceUid) { return -1; }
 	virtual void replaceTexture(int shapeIndex, int textureUid) {}
 	virtual void removeTexture(int textureUid) {}
@@ -118,6 +118,8 @@ struct GUIHelperInterface
 
 	//empty name stops dumping video
 	virtual void dumpFramesToVideo(const char* mp4FileName){};
+	virtual void drawDebugDrawerLines(){}
+	virtual void clearLines(){}
 };
 
 ///the DummyGUIHelper does nothing, so we can test the examples without GUI/graphics (in 'console mode')

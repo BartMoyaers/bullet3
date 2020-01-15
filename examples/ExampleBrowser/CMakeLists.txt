@@ -220,12 +220,6 @@ SET(BulletExampleBrowser_SRCS
 	../MultiThreadedDemo/CommonRigidBodyMTBase.h
 	../Heightfield/HeightfieldExample.cpp
 	../Heightfield/HeightfieldExample.h
-	../BlockSolver/btBlockSolver.cpp
-	../BlockSolver/btBlockSolver.h
-	../BlockSolver/BlockSolverExample.cpp
-	../BlockSolver/BlockSolverExample.h
-	../BlockSolver/RigidBodyBoxes.cpp
-	../BlockSolver/RigidBodyBoxes.h
 	../Tutorial/Tutorial.cpp
 	../Tutorial/Tutorial.h
 	../Tutorial/Dof6ConstraintTutorial.cpp
@@ -359,6 +353,30 @@ SET(BulletExampleBrowser_SRCS
  ../MultiBody/MultiBodyConstraintFeedback.cpp
   ../SoftDemo/SoftDemo.cpp
   ../SoftDemo/SoftDemo.h
+  ../DeformableDemo/DeformableContact.cpp
+  ../DeformableDemo/DeformableContact.h
+  ../DeformableDemo/GraspDeformable.cpp
+  ../DeformableDemo/GraspDeformable.h
+  ../DeformableDemo/Pinch.cpp
+  ../DeformableDemo/Pinch.h
+  ../DeformableDemo/DeformableSelfCollision.cpp
+  ../DeformableDemo/DeformableSelfCollision.h
+  ../DeformableDemo/PinchFriction.cpp
+  ../DeformableDemo/PinchFriction.h
+  ../DeformableDemo/ClothFriction.cpp
+  ../DeformableDemo/ClothFriction.h
+  ../DeformableDemo/DeformableMultibody.cpp
+  ../DeformableDemo/DeformableMultibody.h
+  ../DeformableDemo/DeformableRigid.cpp
+  ../DeformableDemo/DeformableRigid.h
+  ../DeformableDemo/SplitImpulse.cpp
+  ../DeformableDemo/SplitImpulse.h
+  ../DeformableDemo/VolumetricDeformable.cpp
+  ../DeformableDemo/VolumetricDeformable.h
+  ../DeformableDemo/DeformableClothAnchor.cpp
+  ../DeformableDemo/DeformableClothAnchor.h
+  ../DeformableDemo/MultibodyClothAnchor.cpp
+  ../DeformableDemo/MultibodyClothAnchor.h
   ../MultiBody/MultiDofDemo.cpp
   ../MultiBody/MultiDofDemo.h
   ../RigidBody/RigidBodySoftContact.cpp

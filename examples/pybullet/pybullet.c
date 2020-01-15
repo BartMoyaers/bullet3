@@ -1,3 +1,4 @@
+//#include "D:/dev/visual leak detector/include/vld.h"
 
 #include "../SharedMemory/PhysicsClientC_API.h"
 #include "../SharedMemory/PhysicsDirectC_API.h"
@@ -1462,7 +1463,7 @@ static PyObject* pybullet_getDynamicsInfo(PyObject* self, PyObject* args, PyObje
 
 			if (b3GetDynamicsInfo(status_handle, &info))
 			{
-				int numFields = 10;
+				int numFields = 11;
 				PyObject* pyDynamicsInfo = PyTuple_New(numFields);
 				PyTuple_SetItem(pyDynamicsInfo, 0, PyFloat_FromDouble(info.m_mass));
 				PyTuple_SetItem(pyDynamicsInfo, 1, PyFloat_FromDouble(info.m_lateralFrictionCoeff));
@@ -1494,6 +1495,7 @@ static PyObject* pybullet_getDynamicsInfo(PyObject* self, PyObject* args, PyObje
 				PyTuple_SetItem(pyDynamicsInfo, 7, PyFloat_FromDouble(info.m_spinningFrictionCoeff));
 				PyTuple_SetItem(pyDynamicsInfo, 8, PyFloat_FromDouble(info.m_contactDamping));
 				PyTuple_SetItem(pyDynamicsInfo, 9, PyFloat_FromDouble(info.m_contactStiffness));
+				PyTuple_SetItem(pyDynamicsInfo, 10, PyInt_FromLong(info.m_bodyType));
 				return pyDynamicsInfo;
 			}
 		}
@@ -1581,6 +1583,7 @@ static PyObject* pybullet_setPhysicsEngineParameter(PyObject* self, PyObject* ar
 	int reportSolverAnalytics = -1;
 
 	double warmStartingFactor = -1;
+	double sparseSdfVoxelSize = -1;
 
 	int physicsClientId = 0;
 
@@ -1609,11 +1612,12 @@ static PyObject* pybullet_setPhysicsEngineParameter(PyObject* self, PyObject* ar
 							 "minimumSolverIslandSize",
 							 "reportSolverAnalytics",
 							 "warmStartingFactor",
+							 "sparseSdfVoxelSize",
 							 "physicsClientId", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|diidiidiiddddiididdiidiidi", kwlist, &fixedTimeStep, &numSolverIterations, &useSplitImpulse, &splitImpulsePenetrationThreshold, &numSubSteps,
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|diidiidiiddddiididdiidiiddi", kwlist, &fixedTimeStep, &numSolverIterations, &useSplitImpulse, &splitImpulsePenetrationThreshold, &numSubSteps,
 									 &collisionFilterMode, &contactBreakingThreshold, &maxNumCmdPer1ms, &enableFileCaching, &restitutionVelocityThreshold, &erp, &contactERP, &frictionERP, &enableConeFriction, &deterministicOverlappingPairs, &allowedCcdPenetration, &jointFeedbackMode, &solverResidualThreshold, &contactSlop, &enableSAT, &constraintSolverType, &globalCFM, &minimumSolverIslandSize, 
-									&reportSolverAnalytics, &warmStartingFactor, &physicsClientId))
+									&reportSolverAnalytics, &warmStartingFactor, &sparseSdfVoxelSize, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -1737,6 +1741,10 @@ static PyObject* pybullet_setPhysicsEngineParameter(PyObject* self, PyObject* ar
 		if (warmStartingFactor >= 0)
 		{
 			b3PhysicsParamSetWarmStartingFactor(command, warmStartingFactor);
+		}
+		if (sparseSdfVoxelSize >= 0)
+		{
+			b3PhysicsParameterSetSparseSdfVoxelSize(command, sparseSdfVoxelSize);
 		}
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 	}
@@ -1955,19 +1963,36 @@ static PyObject* pybullet_loadSDF(PyObject* self, PyObject* args, PyObject* keyw
 }
 
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+
+
+
+
 // Load a softbody from an obj file
 static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
 	int flags = 0;
 
-	static char* kwlist[] = {"fileName", "basePosition", "baseOrientation", "scale", "mass", "collisionMargin", "physicsClientId", NULL};
+	static char* kwlist[] = {"fileName", "basePosition", "baseOrientation", "scale", "mass", "collisionMargin", "physicsClientId", "useMassSpring", "useBendingSprings", "useNeoHookean", "springElasticStiffness", "springDampingStiffness", "springBendingStiffness", "NeoHookeanMu", "NeoHookeanLambda", "NeoHookeanDamping", "frictionCoeff", "useFaceContact", "useSelfCollision", NULL};
 
 	int bodyUniqueId = -1;
 	const char* fileName = "";
 	double scale = -1;
 	double mass = -1;
 	double collisionMargin = -1;
+	int useMassSpring = 0;
+	int useBendingSprings = 0;
+	int useNeoHookean = 0;
+	double springElasticStiffness = 1;
+	double springDampingStiffness = 0.1;
+	double springBendingStiffness = 0.1;
+	double NeoHookeanMu = 1;
+	double NeoHookeanLambda = 1;
+	double NeoHookeanDamping = 0.1;
+	double frictionCoeff = 0;
+	int useFaceContact = 0;
+	int useSelfCollision = 0;
+	
 
 	b3PhysicsClientHandle sm = 0;
 
@@ -1978,7 +2003,7 @@ static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject*
 	PyObject* basePosObj = 0;
 	PyObject* baseOrnObj = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|OOdddi", kwlist, &fileName, &basePosObj, &baseOrnObj, &scale, &mass, &collisionMargin, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|OOdddiiiidddddddii", kwlist, &fileName, &basePosObj, &baseOrnObj, &scale, &mass, &collisionMargin, &physicsClientId, &useMassSpring, &useBendingSprings, &useNeoHookean, &springElasticStiffness, &springDampingStiffness, &springBendingStiffness, &NeoHookeanMu, &NeoHookeanLambda, &NeoHookeanDamping, &frictionCoeff, &useFaceContact, &useSelfCollision))
 	{
 		return NULL;
 	}
@@ -2031,6 +2056,20 @@ static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject*
 		{
 			b3LoadSoftBodySetCollisionMargin(command, collisionMargin);
 		}
+		if (useMassSpring)
+		{
+			b3LoadSoftBodyAddMassSpringForce(command, springElasticStiffness, springDampingStiffness);
+			b3LoadSoftBodyUseBendingSprings(command, useBendingSprings, springBendingStiffness);
+		}
+		if (useNeoHookean)
+		{
+			b3LoadSoftBodyAddNeoHookeanForce(command, NeoHookeanMu, NeoHookeanLambda, NeoHookeanDamping);
+		}
+		if (useSelfCollision)
+		{
+			b3LoadSoftBodySetSelfCollision(command, useSelfCollision);
+		}
+		b3LoadSoftBodySetFrictionCoefficient(command, frictionCoeff);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 		statusType = b3GetStatusType(statusHandle);
 		if (statusType != CMD_LOAD_SOFT_BODY_COMPLETED)
@@ -2042,16 +2081,67 @@ static PyObject* pybullet_loadSoftBody(PyObject* self, PyObject* args, PyObject*
 	}
 	return PyLong_FromLong(bodyUniqueId);
 }
+
+static PyObject* pybullet_createSoftBodyAnchor(PyObject* self, PyObject* args, PyObject* keywds)
+{
+	b3SharedMemoryCommandHandle commandHandle;
+	int softBodyUniqueId = -1;
+	int nodeIndex  = -1;
+	int bodyUniqueId = -1;
+	int linkIndex = -1;
+	PyObject* bodyFramePositionObj = 0;
+	double bodyFramePosition[3] = {0, 0, 0};
+	struct b3JointInfo jointInfo;
+	b3SharedMemoryStatusHandle statusHandle;
+	int statusType;
+	int physicsClientId = 0;
+	b3PhysicsClientHandle sm = 0;
+	static char* kwlist[] = {"softBodyBodyUniqueId", "nodeIndex",
+							 "bodyUniqueId", "linkIndex", "bodyFramePosition",
+							 "physicsClientId",
+							 NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "ii|iiOi", kwlist, &softBodyUniqueId, &nodeIndex,
+									 &bodyUniqueId, &linkIndex,&bodyFramePositionObj,&physicsClientId))
+	{
+		return NULL;
+	}
+
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+	pybullet_internalSetVectord(bodyFramePositionObj, bodyFramePosition);
+
+	commandHandle = b3InitCreateSoftBodyAnchorConstraintCommand(sm, softBodyUniqueId, nodeIndex, bodyUniqueId, linkIndex, bodyFramePosition);
+	statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
+	statusType = b3GetStatusType(statusHandle);
+	if (statusType == CMD_USER_CONSTRAINT_COMPLETED)
+	{
+		int userConstraintUid = b3GetStatusUserConstraintUniqueId(statusHandle);
+		PyObject* ob = PyLong_FromLong(userConstraintUid);
+		return ob;
+	}
+
+	PyErr_SetString(SpamError, "createSoftBodyAnchor failed.");
+	return NULL;
+}
+
+
 #endif
 
 // Reset the simulation to remove all loaded objects
 static PyObject* pybullet_resetSimulation(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	int physicsClientId = 0;
-	static char* kwlist[] = {"physicsClientId", NULL};
+	int flags = 0;
+	static char* kwlist[] = {"flags", "physicsClientId", NULL};
 	b3PhysicsClientHandle sm = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|ii", kwlist, &flags, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -2063,9 +2153,12 @@ static PyObject* pybullet_resetSimulation(PyObject* self, PyObject* args, PyObje
 	}
 
 	{
+		b3SharedMemoryCommandHandle commandHandle;
 		b3SharedMemoryStatusHandle statusHandle;
+		commandHandle = b3InitResetSimulationCommand(sm);
+		b3InitResetSimulationSetFlags(commandHandle, flags);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(
-			sm, b3InitResetSimulationCommand(sm));
+			sm, commandHandle);
 	}
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -7258,6 +7351,7 @@ static PyObject* pybullet_changeTexture(PyObject* self, PyObject* args, PyObject
 			}
 		}
 
+		Py_DECREF(seqPixels);
 		commandHandle = b3CreateChangeTextureCommandInit(sm, textureUniqueId, width, height, (const char*)pixelBuffer);
 		free(pixelBuffer);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
@@ -7987,7 +8081,7 @@ static PyObject* pybullet_createCollisionShape(PyObject* self, PyObject* args, P
 	PyObject* heightfieldDataObj = 0;
 	int numHeightfieldRows = -1;
 	int numHeightfieldColumns = -1;
-
+	int replaceHeightfieldIndex = -1;
 	static char* kwlist[] = {"shapeType",
 							 "radius",
 							 "halfExtents",
@@ -8004,9 +8098,10 @@ static PyObject* pybullet_createCollisionShape(PyObject* self, PyObject* args, P
 							 "heightfieldData",
 							 "numHeightfieldRows",
 							 "numHeightfieldColumns",
+							 "replaceHeightfieldIndex",
 							 "physicsClientId", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|dOdsOOiOOOOdOiii", kwlist,
-									 &shapeType, &radius, &halfExtentsObj, &height, &fileName, &meshScaleObj, &planeNormalObj, &flags, &collisionFramePositionObj, &collisionFrameOrientationObj, &verticesObj, &indicesObj, &heightfieldTextureScaling, &heightfieldDataObj, &numHeightfieldRows, &numHeightfieldColumns, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|dOdsOOiOOOOdOiiii", kwlist,
+									 &shapeType, &radius, &halfExtentsObj, &height, &fileName, &meshScaleObj, &planeNormalObj, &flags, &collisionFramePositionObj, &collisionFrameOrientationObj, &verticesObj, &indicesObj, &heightfieldTextureScaling, &heightfieldDataObj, &numHeightfieldRows, &numHeightfieldColumns, &replaceHeightfieldIndex, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -8053,40 +8148,45 @@ static PyObject* pybullet_createCollisionShape(PyObject* self, PyObject* args, P
 		}
 		if (shapeType == GEOM_HEIGHTFIELD && fileName==0 && heightfieldDataObj && numHeightfieldColumns>0 && numHeightfieldRows > 0)
 		{
+			PyObject* seqPoints=0;
+			int numHeightfieldPoints;
 			if (meshScaleObj)
 			{
 				pybullet_internalSetVectord(meshScaleObj, meshScale);
 			}
-			PyObject* seqPoints = PySequence_Fast(heightfieldDataObj, "expected a sequence");
-			int numHeightfieldPoints = PySequence_Size(heightfieldDataObj);
+			seqPoints = PySequence_Fast(heightfieldDataObj, "expected a sequence");
+			numHeightfieldPoints = PySequence_Size(heightfieldDataObj);
 			if (numHeightfieldPoints != numHeightfieldColumns*numHeightfieldRows)
 			{
 				PyErr_SetString(SpamError, "Size of heightfieldData doesn't match numHeightfieldColumns*numHeightfieldRows");
 				return NULL;
 			}
-			PyObject* item;
-			int i;
-			float* pointBuffer = (float*)malloc(numHeightfieldPoints*sizeof(float));
-			if (PyList_Check(seqPoints))
 			{
-				for (i = 0; i < numHeightfieldPoints; i++)
+				PyObject* item;
+				int i;
+				float* pointBuffer = (float*)malloc(numHeightfieldPoints*sizeof(float));
+				if (PyList_Check(seqPoints))
 				{
-					item = PyList_GET_ITEM(seqPoints, i);
-					pointBuffer[i] = (float)PyFloat_AsDouble(item);
+					for (i = 0; i < numHeightfieldPoints; i++)
+					{
+						item = PyList_GET_ITEM(seqPoints, i);
+						pointBuffer[i] = (float)PyFloat_AsDouble(item);
+					}
 				}
-			}
-			else
-			{
-				for (i = 0; i < numHeightfieldPoints; i++)
+				else
 				{
-					item = PyTuple_GET_ITEM(seqPoints, i);
-					pointBuffer[i] = (float)PyFloat_AsDouble(item);
+					for (i = 0; i < numHeightfieldPoints; i++)
+					{
+						item = PyTuple_GET_ITEM(seqPoints, i);
+						pointBuffer[i] = (float)PyFloat_AsDouble(item);
+					}
 				}
+				shapeIndex = b3CreateCollisionShapeAddHeightfield2(sm, commandHandle, meshScale, heightfieldTextureScaling, pointBuffer, numHeightfieldRows, numHeightfieldColumns, replaceHeightfieldIndex);
+			
+				free(pointBuffer);
+				if (seqPoints)
+					Py_DECREF(seqPoints);
 			}
-			shapeIndex = b3CreateCollisionShapeAddHeightfield2(sm, commandHandle, meshScale, heightfieldTextureScaling, pointBuffer, numHeightfieldRows, numHeightfieldColumns);
-			free(pointBuffer);
-			if (seqPoints)
-				Py_DECREF(seqPoints);
 		}
 		if (shapeType == GEOM_MESH && fileName)
 		{
@@ -8141,7 +8241,10 @@ static PyObject* pybullet_createCollisionShape(PyObject* self, PyObject* args, P
 			{
 				pybullet_internalSetVector4d(collisionFrameOrientationObj, collisionFrameOrientation);
 			}
-			b3CreateCollisionShapeSetChildTransform(commandHandle, shapeIndex, collisionFramePosition, collisionFrameOrientation);
+			if (collisionFramePositionObj || collisionFrameOrientationObj)
+			{
+				b3CreateCollisionShapeSetChildTransform(commandHandle, shapeIndex, collisionFramePosition, collisionFrameOrientation);
+			}
 		}
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
 		statusType = b3GetStatusType(statusHandle);
@@ -9014,8 +9117,21 @@ static PyObject* pybullet_createMultiBody(PyObject* self, PyObject* args, PyObje
 			if (statusType == CMD_CREATE_MULTI_BODY_COMPLETED)
 			{
 				int uid = b3GetStatusBodyIndex(statusHandle);
-				PyObject* ob = PyLong_FromLong(uid);
-				return ob;
+				if (numBatchPositions > 0)
+				{
+					PyObject* pyResultList = PyTuple_New(numBatchPositions );
+					for (i = 0; i < numBatchPositions; i++)
+					{
+						PyTuple_SetItem(pyResultList, i, PyLong_FromLong(uid - numBatchPositions + i + 1));
+					}
+					return pyResultList;
+					
+				}
+				else
+				{
+					PyObject* ob = PyLong_FromLong(uid);
+					return ob;
+				}
 			}
 		}
 		else
@@ -11696,7 +11812,7 @@ static PyMethodDef SpamMethods[] = {
 	{"resetSimulation", (PyCFunction)pybullet_resetSimulation, METH_VARARGS | METH_KEYWORDS,
 	 "resetSimulation(physicsClientId=0)\n"
 	 "Reset the simulation: remove all objects and start from an empty world."},
-
+	
 	{"stepSimulation", (PyCFunction)pybullet_stepSimulation, METH_VARARGS | METH_KEYWORDS,
 	 "stepSimulation(physicsClientId=0)\n"
 	 "Step the simulation using forward dynamics."},
@@ -11741,6 +11857,10 @@ static PyMethodDef SpamMethods[] = {
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
 	{"loadSoftBody", (PyCFunction)pybullet_loadSoftBody, METH_VARARGS | METH_KEYWORDS,
 	 "Load a softbody from an obj file."},
+
+	{"createSoftBodyAnchor", (PyCFunction)pybullet_createSoftBodyAnchor, METH_VARARGS | METH_KEYWORDS,
+	 "Create an anchor (attachment) between a soft body and a rigid or multi body."},
+
 #endif
 	{"loadBullet", (PyCFunction)pybullet_loadBullet, METH_VARARGS | METH_KEYWORDS,
 	 "Load a world from a .bullet file."},
@@ -12350,6 +12470,10 @@ initpybullet(void)
 	//PyModule_AddIntConstant(m, "CONSTRAINT_SOLVER_LCP_LEMKE",eConstraintSolverLCP_LEMKE);
 	//PyModule_AddIntConstant(m, "CONSTRAINT_SOLVER_LCP_NNCF",eConstraintSolverLCP_NNCG);
 	//PyModule_AddIntConstant(m, "CONSTRAINT_SOLVER_LCP_BLOCK",eConstraintSolverLCP_BLOCK_PGS);
+
+	PyModule_AddIntConstant(m, "RESET_USE_DEFORMABLE_WORLD", RESET_USE_DEFORMABLE_WORLD);
+	PyModule_AddIntConstant(m, "RESET_USE_DISCRETE_DYNAMICS_WORLD", RESET_USE_DISCRETE_DYNAMICS_WORLD);
+	PyModule_AddIntConstant(m, "RESET_USE_SIMPLE_BROADPHASE", RESET_USE_SIMPLE_BROADPHASE);
 
 	PyModule_AddIntConstant(m, "VR_BUTTON_IS_DOWN", eButtonIsDown);
 	PyModule_AddIntConstant(m, "VR_BUTTON_WAS_TRIGGERED", eButtonTriggered);

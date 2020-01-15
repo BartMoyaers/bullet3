@@ -19,3 +19,7 @@ pip-selfcheck.json
 /build
 /dist
 *.eggs
+
+# Virtualenv
+.venv/*
+.gitignore

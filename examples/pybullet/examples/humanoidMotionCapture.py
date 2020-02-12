@@ -42,7 +42,9 @@ timeStep = 1. / 600.
 
 p.setPhysicsEngineParameter(fixedTimeStep=timeStep)
 
-path = pybullet_data.getDataPath() + "/data/motions/humanoid3d_backflip.txt"
+path = pybullet_data.getDataPath() + "/data/motions/blender_ik_test.txt"
+# path = pybullet_data.getDataPath() + "/data/motions/humanoid3d_zero_pos.txt"
+# path = pybullet_data.getDataPath() + "/data/motions/humanoid3d_backflip.txt"
 #path	=	pybullet_data.getDataPath()+"/data/motions/humanoid3d_cartwheel.txt"
 #path	=	pybullet_data.getDataPath()+"/data/motions/humanoid3d_walk.txt"
 

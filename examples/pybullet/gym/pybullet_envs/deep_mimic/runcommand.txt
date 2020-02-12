@@ -1,0 +1,49 @@
+python testrl.py --arg_file run_humanoid3d_backflip_args.txt
+python testrl.py --arg_file run_humanoid3d_spinkick_args_semi_trained.txt
+python testrl.py --arg_file run_humanoid_run_semi_trained.txt
+python testrl.py --arg_file run_humanoid_grasp_semi_trained.txt
+
+
+scp -r acro@10.11.98.170:Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output C:/UntrackedGit/bulletFork/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output
+scp -r acro@10.11.98.170:Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output C:/UntrackedGit/bulletFork/bullet3/examples/pybullet/gym/pybullet_data/output
+scp -r acro@10.11.98.170:Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output C:/UntrackedGit/bulletFork/bullet3/examples/pybullet/gym/pybullet_data/output/spinkick_partial_run
+scp -r acro@10.11.98.170:Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output C:/UntrackedGit/bulletFork/bullet3/examples/pybullet/gym/pybullet_data/output/grasp_partial_run
+scp -r acro@10.11.98.170:Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic/output C:/UntrackedGit/bulletFork/bullet3/examples/pybullet/gym/pybullet_data/data/policies/humanoid3d
+cd Git/bullet3/examples/pybullet/gym/pybullet_envs/deep_mimic
+mpiexec -n 16 python3 DeepMimic_Optimizer.py --arg_file train_humanoid3d_kick_goals_args.txt --num_workers 16
+mpiexec -n 16 python3 DeepMimic_Optimizer.py --arg_file train_humanoid3d_spinkick_args.txt --num_workers 16
+mpiexec -n 16 python3 DeepMimic_Optimizer.py --arg_file train_humanoid3d_walk_args.txt --num_workers 16
+mpiexec -n 16 python DeepMimic_Optimizer.py --arg_file train_humanoid3d_run_args.txt --num_workers 16
+mpiexec -n 16 python DeepMimic_Optimizer.py --arg_file train_humanoid_grasp_args.txt --num_workers 16
+
+// "python3" may have to be "python" instead in previous commands!
+
+// To install pybullet from a local package editably:
+pip install --editable .
+
+// Remote server setup:
+    // setup virtual environment:
+    virtualenv env
+    pip install gym
+    pip install tensorflow==1.14.0
+
+    // build and install pybullet locally:
+    // In bullet3 root folder:
+    ./build_cmake_pybullet_double.sh
+    pip install --editable .
+
+    // Install openMPI:
+    https://www.open-mpi.org/
+    sudo apt install libopenmpi-dev
+    pip install mpi4py
+
+
+// To run training after closing terminal:
+https://linuxize.com/post/how-to-use-linux-screen/
+sudo apt install screen
+screen -r
+ssh acro@10.11.98.170
+
+// enable virtualenv:
+source /home/acro/Git/bullet3/env/bin/activate
+

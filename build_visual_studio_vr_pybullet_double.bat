@@ -5,15 +5,15 @@ IF NOT EXIST bin\openvr64pi.dll  copy examples\ThirdPartyLibs\openvr\bin\win64\o
 #aargh, see https://github.com/ValveSoftware/openvr/issues/412
 
 
-#find a python version (hopefully just 1) and use this
-dir c:\python* /b /ad > tmp1234.txt
+REM #find a python version (hopefully just 1) and use this
+REM dir c:\python* /b /ad > tmp1234.txt
 
-set /p myvar1= < tmp1234.txt
-set myvar=c:/%myvar1%
-del tmp1234.txt
+REM set /p myvar1= < tmp1234.txt
+REM set myvar=c:/%myvar1%
+REM del tmp1234.txt
 
 rem you can also override and hardcode the Python path like this (just remove the # hashmark in next line)
-rem SET myvar=c:\python-3.5.2
+SET myvar=C:\Users\Bart\AppData\Local\Programs\Python\Python36
 
 cd build3
 

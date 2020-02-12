@@ -26,7 +26,8 @@ pybullet_client.setPhysicsEngineParameter(numSolverIterations=10)
 
 mocapData = motion_capture_data.MotionCaptureData()
 #motionPath = pybullet_data.getDataPath()+"/data/motions/humanoid3d_walk.txt"
-motionPath = pybullet_data.getDataPath() + "/data/motions/humanoid3d_backflip.txt"
+# motionPath = pybullet_data.getDataPath() + "/data/motions/humanoid3d_backflip.txt"
+motionPath = pybullet_data.getDataPath() + "/data/motions/blender_ik_test.txt"
 mocapData.Load(motionPath)
 timeStep = 1. / 600
 useFixedBase = False

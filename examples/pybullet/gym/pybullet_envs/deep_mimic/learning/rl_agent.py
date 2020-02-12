@@ -74,7 +74,7 @@ class RLAgent(ABC):
 
     self._output_dir = ""
     self._int_output_dir = ""
-    self.output_iters = 100
+    self.output_iters = 50
     self.int_output_iters = 100
 
     self.train_return = 0.0

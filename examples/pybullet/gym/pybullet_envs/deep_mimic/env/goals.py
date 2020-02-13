@@ -5,6 +5,15 @@ import math
 import pybullet as pb
 import numpy
 
+class RandomBounds:
+    def __init__(self, lower_bound: float, upper_bound: float):
+        self.upper_bound = upper_bound
+        self.lower_bound = lower_bound
+        self.difference = upper_bound - lower_bound
+
+    def generate(self) -> float:
+        return self.lower_bound + random.random() * self.difference
+    
 def randomVal(lowerBound, upperbound):
     difference = upperbound - lowerBound
     return lowerBound + random.random() * difference
@@ -15,6 +24,7 @@ class GoalType(Enum):
     TargetHeading = 2
     Throw = 3
     TerrainTraversal = 4
+    Grab = 5
 
     @staticmethod
     def from_str(goal_type_str):
@@ -49,22 +59,29 @@ class NoGoal(Goal):
     def getTFData(self):
         return self.goal_data
 
-class StrikeGoal(Goal):
-    def __init__(self):
+class Strike(Goal):
+    def __init__(self,
+                distance_RB: RandomBounds,
+                height_RB: RandomBounds,
+                rot_RB: RandomBounds,
+                hit_range = 0.2):
         self.follow_rot = True
         self.is_hit_prev = False
+        self.distance_RB = distance_RB
+        self.height_RB = height_RB
+        self.rot_RB = rot_RB
+        self.hit_range = hit_range
         super().__init__(GoalType.Strike)
-
-    def generateGoalData(self, modelPos=[0,0,0], modelOrient=[0,0,0,1]):
+    
+    def generateGoalData(self,
+                        modelPos=[0,0,0],
+                        modelOrient=[0,0,0,1]):
         # distance, height, rot
-        distance = randomVal(0.6, 0.8)
-        height = randomVal(0.8, 1.25)
-        rot = randomVal(-1, 1) # radians
+        distance = self.distance_RB.generate()
+        height = self.height_RB.generate()
+        rot = self.rot_RB.generate() # radians
 
         self.is_hit = False
-
-        # The max distance from the target counting as a hit
-        self.hit_range = 0.2
 
         # Transform to xyz coordinates for placement in environment
         x = distance * math.cos(rot)
@@ -75,7 +92,7 @@ class StrikeGoal(Goal):
         self.goal_data = [-x, z, y]
 
         if self.follow_rot:
-            # Take rotation of human model into account
+            # Take rotation of robot model into account
             rotMatList = pb.getMatrixFromQuaternion(modelOrient)
             rotMat = numpy.array([rotMatList[0:3], rotMatList[3:6], rotMatList[6:9]])
             vec = numpy.array(self.goal_data)
@@ -102,6 +119,21 @@ class StrikeGoal(Goal):
             x = 1.0
         return [x] + self.goal_data
 
+class Kick(Strike):
+    def __init__(self):
+        distance_RB = RandomBounds(0.6, 0.8)
+        height_RB = RandomBounds(0.8, 1.25)
+        rot_RB = RandomBounds(-1, 1)
+        super().__init__(distance_RB, height_RB, rot_RB, hit_range=0.2)
+
+class Grab(Strike):
+    def __inite__(self):
+        distance_RB = RandomBounds(0.6, 0.8)
+        height_RB = RandomBounds(0.8, 0.9)
+        rot_RB = RandomBounds(-1, 1)
+        hit_range = 0.1
+        super().__init__(distance_RB, height_RB, rot_RB, hit_range=hit_range)
+
 class TargetHeadingGoal(Goal):
     def __init__(self):
         super().__init__(GoalType.TargetHeading)
@@ -122,8 +154,10 @@ def createGoal(goal_type: GoalType) -> Goal:
     if goal_type == GoalType.NoGoal:
         return NoGoal()
     elif goal_type == GoalType.Strike:
-        return StrikeGoal()
+        return Kick()
     elif goal_type == GoalType.TargetHeading:
         return TargetHeadingGoal()
+    elif goal_type == GoalType.Grab:
+        return Grab()
     else:
         raise NotImplementedError

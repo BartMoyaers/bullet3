@@ -6,7 +6,7 @@ from pybullet_utils import bullet_client
 import time
 from pybullet_envs.deep_mimic.env import motion_capture_data
 from pybullet_envs.deep_mimic.env import humanoid_stable_pd
-from pybullet_envs.deep_mimic.env.goals import GoalType, Goal, createGoal
+from pybullet_envs.deep_mimic.env.goals import GoalType, Goal, createGoal, Kick, Grab
 from pybullet_envs.deep_mimic.env.humanoid_link_ids import HumanoidLinks
 import pybullet_data
 import pybullet as p1
@@ -257,7 +257,10 @@ class PyBulletDeepMimicEnv(Env):
     goal_weight = 0.3
 
     if self.goal.goal_type == GoalType.Strike:
-      linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)
+      if self.goal.__class__ == Kick:
+        linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)
+      else: #elif type(self.goal) == Grab:
+        linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightWrist)
       reward = mimic_weight * reward + goal_weight * self.calcStrikeGoalReward(linkPos)
 
     return reward

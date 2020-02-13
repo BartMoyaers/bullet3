@@ -64,8 +64,9 @@ class Strike(Goal):
                 distance_RB: RandomBounds,
                 height_RB: RandomBounds,
                 rot_RB: RandomBounds,
-                hit_range = 0.2):
-        self.follow_rot = True
+                hit_range = 0.2,
+                follow_rot = True):
+        self.follow_rot = follow_rot
         self.is_hit_prev = False
         self.distance_RB = distance_RB
         self.height_RB = height_RB
@@ -127,12 +128,12 @@ class Kick(Strike):
         super().__init__(distance_RB, height_RB, rot_RB, hit_range=0.2)
 
 class Grab(Strike):
-    def __inite__(self):
+    def __init__(self):
         distance_RB = RandomBounds(0.6, 0.8)
-        height_RB = RandomBounds(0.8, 0.9)
-        rot_RB = RandomBounds(-1, 1)
+        height_RB = RandomBounds(0.8, 1.1)
+        rot_RB = RandomBounds(3.14159 - 0.5, 3.14159 + 0.5)
         hit_range = 0.1
-        super().__init__(distance_RB, height_RB, rot_RB, hit_range=hit_range)
+        super().__init__(distance_RB, height_RB, rot_RB, hit_range=hit_range, follow_rot=False)
 
 class TargetHeadingGoal(Goal):
     def __init__(self):

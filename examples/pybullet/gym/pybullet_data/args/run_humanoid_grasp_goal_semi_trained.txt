@@ -23,5 +23,5 @@
 
 #--output_path output
 #--int_output_path output/intermediate
---model_files output/grasp_partial_run/agent0_model.ckpt
+--model_files output/grasp_goal_partial_run/agent0_model.ckpt
 #--model_files output/spinkick_partial_run/agent0_model.ckpt

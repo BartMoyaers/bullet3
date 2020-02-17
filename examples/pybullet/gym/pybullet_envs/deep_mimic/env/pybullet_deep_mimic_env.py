@@ -289,7 +289,7 @@ class PyBulletDeepMimicEnv(Env):
     #print("pybullet_deep_mimic_env:update timeStep=",timeStep," t=",self.t)
     self._pybullet_client.setTimeStep(timeStep)
     self._humanoid._timeStep = timeStep
-    self.updateGoal(self._humanoid.getLinkPositionAndOrientation(self.goal.target_link)[0])
+    self.updateGoal()
     if self.target_id is not None: # TODO: check goal type
       self.updateDrawStrikeGoal()
 
@@ -413,8 +413,9 @@ class PyBulletDeepMimicEnv(Env):
       distanceSquared = sum([(x - y)**2 for (x, y) in zip(goalPos, linkPos)])
       return math.exp(-4*distanceSquared)
 
-  def updateGoal(self, linkPos):
+  def updateGoal(self):
     if self.goal.goal_type == GoalType.Strike:
+      linkPos = self._humanoid.getLinkPositionAndOrientation(self.goal.target_link)[0]
       if self.prevCycleCount != self._humanoid.cycleCount:
         # generate new goal
         humanPos, humanOrient = self._humanoid.getLinkPositionAndOrientation(0)

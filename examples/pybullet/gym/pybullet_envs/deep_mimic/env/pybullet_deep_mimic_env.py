@@ -257,10 +257,7 @@ class PyBulletDeepMimicEnv(Env):
     goal_weight = 0.3
 
     if self.goal.goal_type == GoalType.Strike:
-      if self.goal.__class__ == Kick:
-        linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)
-      else: #elif type(self.goal) == Grab:
-        linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightWrist)
+      linkPos, linkOrient = self._humanoid.getLinkPositionAndOrientation(self.goal.target_link)
       reward = mimic_weight * reward + goal_weight * self.calcStrikeGoalReward(linkPos)
 
     return reward
@@ -292,7 +289,7 @@ class PyBulletDeepMimicEnv(Env):
     #print("pybullet_deep_mimic_env:update timeStep=",timeStep," t=",self.t)
     self._pybullet_client.setTimeStep(timeStep)
     self._humanoid._timeStep = timeStep
-    self.updateGoal(self._humanoid.getLinkPositionAndOrientation(HumanoidLinks.rightAnkle)[0])
+    self.updateGoal(self._humanoid.getLinkPositionAndOrientation(self.goal.target_link)[0])
     if self.target_id is not None: # TODO: check goal type
       self.updateDrawStrikeGoal()
 

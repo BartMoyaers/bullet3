@@ -4,6 +4,7 @@ import random
 import math
 import pybullet as pb
 import numpy
+from pybullet_envs.deep_mimic.env.humanoid_link_ids import HumanoidLinks
 
 class RandomBounds:
     def __init__(self, lower_bound: float, upper_bound: float):
@@ -65,13 +66,15 @@ class Strike(Goal):
                 height_RB: RandomBounds,
                 rot_RB: RandomBounds,
                 hit_range = 0.2,
-                follow_rot = True):
+                follow_rot = True,
+                target_link = HumanoidLinks.rightAnkle):
         self.follow_rot = follow_rot
         self.is_hit_prev = False
         self.distance_RB = distance_RB
         self.height_RB = height_RB
         self.rot_RB = rot_RB
         self.hit_range = hit_range
+        self.target_link = target_link
         super().__init__(GoalType.Strike)
     
     def generateGoalData(self,
@@ -133,7 +136,8 @@ class Grab(Strike):
         height_RB = RandomBounds(0.8, 1.1)
         rot_RB = RandomBounds(3.14159 - 0.5, 3.14159 + 0.5)
         hit_range = 0.1
-        super().__init__(distance_RB, height_RB, rot_RB, hit_range=hit_range, follow_rot=False)
+        target_link = HumanoidLinks.rightWrist
+        super().__init__(distance_RB, height_RB, rot_RB, hit_range=hit_range, follow_rot=False, target_link=target_link)
 
 class TargetHeadingGoal(Goal):
     def __init__(self):

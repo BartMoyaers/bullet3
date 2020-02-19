@@ -132,7 +132,7 @@ class Kick(Strike):
 
 class Grab(Strike):
     def __init__(self):
-        distance_RB = RandomBounds(0.6, 0.8)
+        distance_RB = RandomBounds(0.4, 0.6)
         height_RB = RandomBounds(0.8, 1.1)
         rot_RB = RandomBounds(3.14159 - 0.5, 3.14159 + 0.5)
         hit_range = 0.1
